@@ -13,10 +13,10 @@ spring:
       password: root
 
     pg:
-      jdbc-url: jdbc:postgresql://127.0.0.1:5432/jetlinks
+      jdbc-url: jdbc:postgresql://127.0.0.1:5432/securityaudit
       driver-class-name: org.postgresql.Driver
       username: postgres
-      password: root
+      password: 123456
 
 doc:
   path: D:/data/dbDetail.doc

@@ -2,6 +2,8 @@ package com.heartsuit.db2word.service.impl;
 
 import com.heartsuit.db2word.config.DataSourceSwitcher;
 import com.heartsuit.db2word.dao.postgresql.PostgreSQLDataSourceMapper;
+import com.heartsuit.db2word.domain.PgParams;
+import com.heartsuit.db2word.domain.PgTableInfo;
 import com.heartsuit.db2word.enums.DataSourceEnum;
 import com.heartsuit.db2word.service.PostgreSQLDataSourceDetailService;
 import com.lowagie.text.*;
@@ -34,19 +36,19 @@ public class PostgreSQLDataSourceDetailServiceImpl implements PostgreSQLDataSour
 
     @Override
     @DataSourceSwitcher(DataSourceEnum.PG)
-    public List<Map<String, Object>> getAllTableNames() {
-        return postgreSQLDataSourceMapper.getAllTableNames();
+    public List<Map<String, String>> getAllTableNames(PgParams pgParams) {
+        return postgreSQLDataSourceMapper.getAllTableNames(pgParams);
     }
 
     @Override
     @DataSourceSwitcher(DataSourceEnum.PG)
-    public List<Map<String, Object>> getTableColumnDetail(String tableName) {
+    public List<PgTableInfo> getTableColumnDetail(String tableName) {
         return postgreSQLDataSourceMapper.getTableColumnDetail(tableName);
     }
 
     @Override
     @DataSourceSwitcher(DataSourceEnum.PG)
-    public void toWord(List<Map<String, Object>> tables) throws FileNotFoundException, DocumentException {
+    public void toWord(List<Map<String, String>> tables) throws FileNotFoundException, DocumentException {
         // 创建word文档,并设置纸张的大小
         Document document = new Document(PageSize.A4);
         // 创建word文档
@@ -59,12 +61,12 @@ public class PostgreSQLDataSourceDetailServiceImpl implements PostgreSQLDataSour
         /* * 创建表格 通过查询出来的表遍历 */
         for (int i = 0; i < tables.size(); i++) {
             // 表名
-            String table_name = (String) tables.get(i).get("table_name");
+            String table_name = tables.get(i).get("table_name");
             // 表说明
             String table_comment = tables.get(i).get("table_comment") == null ? "" : (String) tables.get(i).get("table_comment");
 
             //获取某张表的所有字段说明
-            List<Map<String, Object>> columns = this.getTableColumnDetail(table_name);
+            List<PgTableInfo> columns = this.getTableColumnDetail(table_name);
             //构建表说明
             String all = "" + (i + 1) + ". 表名：" + table_name + " " + table_comment + "";
             //创建有6列的表格
@@ -101,11 +103,11 @@ public class PostgreSQLDataSourceDetailServiceImpl implements PostgreSQLDataSour
             // 表格的主体
             for (int k = 0; k < columns.size(); k++) {
                 //获取某表每个字段的详细说明
-                String Field = (String) columns.get(k).get("field");
-                String Type = (String) columns.get(k).get("type");
-                String Null = (String) columns.get(k).get("null");
-                String Key = (String) columns.get(k).get("key");
-                String Comment = (String) columns.get(k).get("comment");
+                String Field = columns.get(k).getField();
+                String Type = columns.get(k).getType();
+                String Null = columns.get(k).getNullable();
+                String Key = columns.get(k).getKey();
+                String Comment = columns.get(k).getComment();
                 table.addCell((k + 1) + "");
                 table.addCell(Field);
                 table.addCell(Type);

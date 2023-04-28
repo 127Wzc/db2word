@@ -1,8 +1,13 @@
 package com.heartsuit.db2word.dao.postgresql;
 
+import com.heartsuit.db2word.domain.PgParams;
+import com.heartsuit.db2word.domain.PgTableInfo;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Result;
+import org.apache.ibatis.annotations.Results;
 import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.type.JdbcType;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -20,8 +25,21 @@ public interface PostgreSQLDataSourceMapper {
      *
      * @return
      */
-    @Select("select relname as table_name,(select description from pg_description where objoid=oid and objsubid=0) as table_comment from pg_class where relkind ='r' and relname NOT LIKE 'pg%' AND relname NOT LIKE 'sql_%' order by table_name;")
-    List<Map<String, Object>> getAllTableNames();
+    @Select({
+            "<script>",
+            "SELECT" ,
+            "relname AS TABLE_NAME,",
+            "( SELECT description FROM pg_description WHERE objoid = oid AND objsubid = 0 ) AS table_comment ",
+            "FROM  pg_class ",
+            "WHERE relkind = 'r'  AND relname NOT LIKE'pg%'  AND relname NOT LIKE'sql_%' ",
+            " <if test=\"pgParams.schema != null and pgParams.schema!='' \"> ",
+            "AND relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = #{pgParams.schema,jdbcType=VARCHAR})",
+            " </if> ",
+            "ORDER BY TABLE_NAME",
+            "</script>"
+
+    })
+    List<Map<String, String>> getAllTableNames(@Param("pgParams") PgParams pgParams);
 
     /**
      * 根据表名称获取表的详细信息
@@ -37,9 +55,16 @@ public interface PostgreSQLDataSourceMapper {
             "when (select count(*) from pg_constraint where conrelid = a.attrelid and conkey[1]=attnum and contype='u')>0 then 'UNI'\n" +
             "when (select count(*) from pg_constraint where conrelid = a.attrelid and conkey[1]=attnum and contype='f')>0 then 'FRI'\n" +
             "else '' end) as key,\n" +
-            "(case when a.attnotnull=true then 'NO' else 'YES' end) as null,\n" +
+            "(case when a.attnotnull=true then 'NO' else 'YES' end) as nullable,\n" +
             "col_description(a.attrelid,a.attnum) as comment\n" +
             "from pg_attribute a\n" +
             "where attstattarget=-1 and attrelid = (select oid from pg_class where relname = '${tableName}');")
-    List<Map<String, Object>> getTableColumnDetail(@Param("tableName") String tableName);
+    @Results({
+            @Result(column = "field", property = "field", jdbcType = JdbcType.VARCHAR),
+            @Result(column = "type", property = "type", jdbcType = JdbcType.VARCHAR),
+            @Result(column = "nullable", property = "nullable", jdbcType = JdbcType.VARCHAR),
+            @Result(column = "comment", property = "comment", jdbcType = JdbcType.VARCHAR),
+            @Result(column = "key", property = "key", jdbcType = JdbcType.VARCHAR),
+    })
+    List<PgTableInfo> getTableColumnDetail(@Param("tableName") String tableName);
 }

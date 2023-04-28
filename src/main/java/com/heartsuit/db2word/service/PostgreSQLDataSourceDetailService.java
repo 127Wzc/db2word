@@ -1,5 +1,7 @@
 package com.heartsuit.db2word.service;
 
+import com.heartsuit.db2word.domain.PgParams;
+import com.heartsuit.db2word.domain.PgTableInfo;
 import com.lowagie.text.DocumentException;
 
 import java.io.FileNotFoundException;
@@ -15,14 +17,14 @@ public interface PostgreSQLDataSourceDetailService {
      * 获取数据库中表的名称和注释
      * @return
      */
-    List<Map<String, Object>> getAllTableNames();
+    List<Map<String, String>> getAllTableNames(PgParams pgParams);
 
     /**
      * 根据表名称获取表的详细信息
      * @param tableName
      * @return
      */
-    List<Map<String, Object>> getTableColumnDetail(String tableName);
+    List<PgTableInfo> getTableColumnDetail(String tableName);
 
     /**
      * 将数据写出到指定的word文档中
@@ -30,5 +32,5 @@ public interface PostgreSQLDataSourceDetailService {
      * @throws FileNotFoundException
      * @throws DocumentException
      */
-    void toWord(List<Map<String, Object>> tables) throws FileNotFoundException, DocumentException;
+    void toWord(List<Map<String, String>> tables) throws FileNotFoundException, DocumentException;
 }
