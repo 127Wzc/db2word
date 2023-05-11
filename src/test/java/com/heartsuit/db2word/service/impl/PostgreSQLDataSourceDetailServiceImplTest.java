@@ -10,6 +10,7 @@ import com.alibaba.excel.write.style.column.LongestMatchColumnWidthStyleStrategy
 import com.heartsuit.db2word.domain.PgParams;
 import com.heartsuit.db2word.domain.PgTableInfo;
 import com.heartsuit.db2word.service.PostgreSQLDataSourceDetailService;
+import com.heartsuit.db2word.utils.ExcelUtil;
 import com.lowagie.text.DocumentException;
 import org.apache.poi.ss.usermodel.FillPatternType;
 import org.apache.poi.ss.usermodel.IndexedColors;
@@ -64,33 +65,18 @@ class PostgreSQLDataSourceDetailServiceImplTest {
         pgParams.setSchema("myschema");
         List<Map<String, String>> tableNames = postgreSQLDataSourceDetailService.getAllTableNames(pgParams);
 
-        // 头的策略
-        WriteCellStyle headWriteCellStyle = new WriteCellStyle();
-        // 背景色
-//        headWriteCellStyle.setFillForegroundColor(IndexedColors.GREY_80_PERCENT.getIndex());
-        WriteFont headWriteFont = new WriteFont();
-        headWriteFont.setFontHeightInPoints((short)15);
-        headWriteCellStyle.setWriteFont(headWriteFont);
-        // 内容的策略
-        WriteCellStyle contentWriteCellStyle = new WriteCellStyle();
-        // 这里需要指定 FillPatternType 为FillPatternType.SOLID_FOREGROUND 不然无法显示背景颜色.头默认了 FillPatternType所以可以不指定
 
-        // 背景绿色
-        WriteFont contentWriteFont = new WriteFont();
-        // 字体大小
-        contentWriteFont.setFontHeightInPoints((short)15);
-        contentWriteCellStyle.setWriteFont(contentWriteFont);
-        // 这个策略是 头是头的样式 内容是内容的样式 其他的策略可以自己实现
-        HorizontalCellStyleStrategy horizontalCellStyleStrategy =
-                new HorizontalCellStyleStrategy(headWriteCellStyle, contentWriteCellStyle);
+
 //        postgreSQLDataSourceDetailService.toWord(tableNames);
         // 这里 需要指定写用哪个class去写
         try (ExcelWriter excelWriter = EasyExcel.write(fileName, PgTableInfo.class).build()) {
             for (int i =0;i<tableNames.size();i++) {
                 String table_name = tableNames.get(i).get("table_name");
                 WriteSheet writeSheet = EasyExcel.writerSheet(i, table_name)
+                        //内容策略
                         .registerWriteHandler(new LongestMatchColumnWidthStyleStrategy())
-                        .registerWriteHandler(horizontalCellStyleStrategy)
+                        // 这个策略是 头是头的样式 内容是内容的样式 其他的策略可以自己实现
+                        .registerWriteHandler(ExcelUtil.getHorizontalCellStyle())
                         .build();
 
                 List<PgTableInfo> data = postgreSQLDataSourceDetailService.getTableColumnDetail(table_name);

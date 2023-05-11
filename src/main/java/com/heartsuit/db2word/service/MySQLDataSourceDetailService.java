@@ -1,5 +1,6 @@
 package com.heartsuit.db2word.service;
 
+import com.heartsuit.db2word.domain.MySqlInfo;
 import com.lowagie.text.DocumentException;
 
 import java.io.FileNotFoundException;
@@ -13,19 +14,19 @@ public interface MySQLDataSourceDetailService {
      *@创建人  lv617
      *@创建时间  2018/9/4 16:52
      */
-    List<Map<String, Object>> getDataSourceDetail(String tableName);
+    List<MySqlInfo> getDataSourceDetail(String tableName);
     /**
      *  描述：根据数据库名称获取数据库中表的名称和注释
      *
      *@创建人  lv617
      *@创建时间  2018/9/4 16:52
      */
-    List<Map<String, Object>> getAllDataSourceName(String dbName);
+    List<Map<String, String>> getAllDataSourceName(String dbName);
     /**
      *  描述：将数据写出到指定的word文档中
      *
      *@创建人  lv617
      *@创建时间  2018/9/4 16:52
      */
-    void toWord(List<Map<String, Object>> listAll) throws FileNotFoundException, DocumentException;
+    void toWord(List<Map<String, String>> listAll) throws FileNotFoundException, DocumentException;
 }

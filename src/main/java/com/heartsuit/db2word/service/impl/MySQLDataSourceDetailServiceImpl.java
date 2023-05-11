@@ -2,6 +2,7 @@ package com.heartsuit.db2word.service.impl;
 
 import com.heartsuit.db2word.config.DataSourceSwitcher;
 import com.heartsuit.db2word.dao.mysql.MySQLDataSourceMapper;
+import com.heartsuit.db2word.domain.MySqlInfo;
 import com.heartsuit.db2word.enums.DataSourceEnum;
 import com.heartsuit.db2word.service.MySQLDataSourceDetailService;
 import com.lowagie.text.*;
@@ -34,19 +35,19 @@ public class MySQLDataSourceDetailServiceImpl implements MySQLDataSourceDetailSe
 
     @Override
     @DataSourceSwitcher(DataSourceEnum.MYSQL)
-    public List<Map<String, Object>> getDataSourceDetail(String tableName) {
+    public List<MySqlInfo> getDataSourceDetail(String tableName) {
         return dataSourceMapper.getAllTableNames(tableName);
     }
 
     @Override
     @DataSourceSwitcher(DataSourceEnum.MYSQL)
-    public List<Map<String, Object>> getAllDataSourceName(String dbName) {
+    public List<Map<String, String>> getAllDataSourceName(String dbName) {
         return dataSourceMapper.getTableColumnDetail(dbName);
     }
 
     @Override
     @DataSourceSwitcher(DataSourceEnum.MYSQL)
-    public void toWord(List<Map<String, Object>> listAll) throws FileNotFoundException, DocumentException {
+    public void toWord(List<Map<String, String>> listAll) throws FileNotFoundException, DocumentException {
         // 创建word文档,并设置纸张的大小
         Document document = new Document(PageSize.A4);
         // 创建word文档
@@ -60,11 +61,11 @@ public class MySQLDataSourceDetailServiceImpl implements MySQLDataSourceDetailSe
         ph.setFont(f);/* * 创建表格 通过查询出来的表遍历 */
         for (int i = 0; i < listAll.size(); i++) {
             // 表名
-            String table_name = (String) listAll.get(i).get("table_name");
+            String table_name = listAll.get(i).get("table_name");
             // 表说明
-            String table_comment = (String) listAll.get(i).get("table_comment");
+            String table_comment = listAll.get(i).get("table_comment");
             //获取某张表的所有字段说明
-            List<Map<String, Object>> list = this.getDataSourceDetail(table_name);
+            List<MySqlInfo> list = this.getDataSourceDetail(table_name);
             //构建表说明
             String all = "" + (i + 1) + " 表名：" + table_name + " " + table_comment + "";
 //            String all = "" + " 表名：" + table_name + " " + table_comment + "";
@@ -104,11 +105,11 @@ public class MySQLDataSourceDetailServiceImpl implements MySQLDataSourceDetailSe
             // 表格的主体，
             for (int k = 0; k < list.size(); k++) {
                 //获取某表每个字段的详细说明
-                String Field = (String) list.get(k).get("Field");
-                String Type = (String) list.get(k).get("Type");
-                String Null = (String) list.get(k).get("Null");
-                String Key = (String) list.get(k).get("Key");
-                String Comment = (String) list.get(k).get("Comment");
+                String Field = list.get(k).getField();
+                String Type = list.get(k).getType();
+                String Null = String.valueOf(list.get(k).getAllowNull());
+                String Key = list.get(k).getKey();
+                String Comment = list.get(k).getComment();
                 table.addCell((k + 1) + "");
                 table.addCell(Field);
                 table.addCell(Type);
